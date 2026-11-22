@@ -80,6 +80,6 @@ Gemini 3.5 prices are not in `pricing.ts`, so usage is reported in tokens, not a
 3. Run `npm run db:push` once against the production database, then run research locally (`npm run research:seed`). Long research runs as a script, not in a serverless request.
 4. Check: `/api/health` returns `{ok:true}`, `/` redirects to `/login`, and after login every screen loads.
 
-Known limits: no real email sending (sandbox only); Cal.com availability is tested live (event type "30 min", slots filtered to 9:00-17:00 in the prospect's timezone) but a live booking has not been made; only 21 companies researched so far (target 30); re-drafting a company creates a new thread.
+Known limits: no real email sending (sandbox only); Cal.com availability and a live booking are tested (event type "30 min", slots filtered to 9:00-17:00 in the prospect's timezone; bookings need `CAL_BOOKING_EMAIL`, a real inbox, because Cal.com rejects the sandbox prospect addresses); only 21 companies researched so far (target 30); re-drafting a company creates a new thread.
 
 More: `docs/ASSUMPTIONS.md` (things to confirm with the client), `LOG.md` (build journal, mistakes, plan changes).

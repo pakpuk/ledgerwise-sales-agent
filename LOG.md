@@ -102,3 +102,4 @@
 ## After deploy (2026-11-22)
 - **Live Cal.com booking test FAILED:** Cal.com returns `email_domain_cannot_receive_mail` for our `.sandbox` prospect addresses, so every live booking would have failed. Worse, the agent would then have told the prospect "that time was just taken". Fixed: a booking failure now hands the thread to a human; new optional `CAL_BOOKING_EMAIL` (a real team inbox) is used as the Cal.com attendee. Not re-tested live (no inbox configured yet).
 - Login page redesigned (clearer card, show/hide password, plain error message).
+- **Live Cal.com booking WORKS** with `CAL_BOOKING_EMAIL` set to the user's inbox (user approved): booked Mon Nov 23 9:00 AM EST (Cal.com id nA7zj2Eb2LGZu3cC9KQFKH); that slot then disappeared from availability. This was a test event in the user's calendar and can be cancelled in Cal.com.
