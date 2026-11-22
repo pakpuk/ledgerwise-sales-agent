@@ -117,7 +117,7 @@ async function handleReplyUnguarded(deps: Deps, threadId: string, text: string):
           const r = await reply(deps, view, inbound, `Great, you're booked for ${formatSlot(picked)}. A calendar invite will follow. Talk soon.`, { ...base, route: "booked", bookingId: booking.id });
           return { ...r, bookingId: booking.id };
         } catch (e) {
-          base.reason = `Could not book: ${(e as Error).message}`;
+          return escalate(deps, view, inbound, cls, `Could not book the call (${(e as Error).message.slice(0, 100)}): please book it yourself`);
         }
       }
       const slots = await offerSlots(deps, view);

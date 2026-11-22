@@ -55,7 +55,8 @@ export class CalComCalendar implements CalendarPort {
       body: JSON.stringify({
         start: args.start.toISOString(),
         eventTypeId: this.eventTypeId,
-        attendee: { name: args.name, email: args.email, timeZone: args.timezone, language: "en" },
+        // Cal.com rejects addresses that cannot receive mail (our .sandbox prospects), so a real team inbox can stand in.
+        attendee: { name: args.name, email: process.env.CAL_BOOKING_EMAIL || args.email, timeZone: args.timezone, language: "en" },
         metadata: { idempotencyKey: args.idempotencyKey.slice(0, 500), source: "ledgerwise-agent" },
       }),
       signal: AbortSignal.timeout(20_000),

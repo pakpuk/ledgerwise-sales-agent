@@ -98,3 +98,7 @@
 - **Final eval:** 17/17 routing, 0 violations, 2/2 bookings, ~490 tokens/reply (fast model both tiers).
 - **Secret scan:** history + tree. Only match = the `SESSION_SECRET` placeholder in `.env.example` (false positive). Real keys only in gitignored `.env.local`, never committed.
 - **GitHub CLI not installed** → the push is left to the user.
+
+## After deploy (2026-11-22)
+- **Live Cal.com booking test FAILED:** Cal.com returns `email_domain_cannot_receive_mail` for our `.sandbox` prospect addresses, so every live booking would have failed. Worse, the agent would then have told the prospect "that time was just taken". Fixed: a booking failure now hands the thread to a human; new optional `CAL_BOOKING_EMAIL` (a real team inbox) is used as the Cal.com attendee. Not re-tested live (no inbox configured yet).
+- Login page redesigned (clearer card, show/hide password, plain error message).
