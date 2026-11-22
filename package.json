@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:push": "drizzle-kit push",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "research": "tsx --env-file-if-exists=.env.local scripts/research.ts",
+    "research:seed": "tsx --env-file-if-exists=.env.local scripts/research.ts --seed"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.12.0",

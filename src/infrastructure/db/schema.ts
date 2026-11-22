@@ -21,6 +21,9 @@ export const companies = pgTable(
     id: id(),
     name: text("name").notNull(),
     domain: text("domain").notNull(),
+    website: text("website").notNull(),
+    trigger: text("trigger"),
+    source: text("source", { enum: ["seed", "research"] }).notNull().default("seed"),
     status: text("status", { enum: ["new", "researched", "qualified", "disqualified"] }).notNull().default("new"),
     createdAt: createdAt(),
   },
@@ -95,7 +98,7 @@ export const messages = pgTable(
     id: id(),
     threadId: uuid("thread_id").notNull().references(() => threads.id, { onDelete: "cascade" }),
     direction: text("direction", { enum: ["outbound", "inbound"] }).notNull(),
-    status: text("status", { enum: ["draft", "approved", "rejected", "sent", "received"] }).notNull(),
+    status: text("status", { enum: ["draft", "approved", "rejected", "sent", "received", "cancelled"] }).notNull(),
     subject: text("subject"),
     body: text("body").notNull(),
     claims: jsonb("claims").$type<Claim[]>().notNull().default([]),
@@ -107,9 +110,10 @@ export const messages = pgTable(
   (t) => [index("messages_thread_idx").on(t.threadId), index("messages_status_idx").on(t.status)],
 );
 
-/** Opt-outs. Checked by send-message before anything leaves. */
+/** Opt-outs (an email or a whole domain). Checked before any LLM call and inside send-message. */
 export const suppressions = pgTable("suppressions", {
-  email: text("email").primaryKey(),
+  value: text("value").primaryKey(), // lower-cased email or domain
+  kind: text("kind", { enum: ["email", "domain"] }).notNull(),
   reason: text("reason").notNull(),
   createdAt: createdAt(),
 });
@@ -145,6 +149,8 @@ export const agentRuns = pgTable(
     id: id(),
     kind: text("kind").notNull(),
     model: text("model").notNull(),
+    promptVersion: text("prompt_version").notNull().default("n/a"),
+    subjectId: text("subject_id"), // company or thread this run was for (cost per lead / per reply)
     inputTokens: integer("input_tokens").notNull().default(0),
     outputTokens: integer("output_tokens").notNull().default(0),
     costUsd: numeric("cost_usd", { precision: 12, scale: 6, mode: "number" }).notNull().default(0),

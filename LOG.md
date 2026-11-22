@@ -22,3 +22,12 @@
 - **Plan change:** restructured to the claude.md layout (`domain/entities`, `domain/rules`, `application/ports`, `application/use-cases`, `application/prompts`). Escalation now also covers hostile, non-English, outside-knowledge-base and "validator failed twice".
 - **LLM provider:** the provider was left as a placeholder; claude.md says Anthropic SDK, so `@anthropic-ai/sdk` is the primary adapter. A small fetch-based Gemini adapter is used only if `GEMINI_API_KEY` is set instead.
 - **Env:** `.env.local` had none of the user's keys at the start of CP2 → every external feature needs a graceful fallback.
+
+## Checkpoint 2 — research, qualify, Companies page (2026-11-22)
+
+- **Fact rule enforced in code:** `quoteAppearsIn()` (normalises case/whitespace/smart quotes) runs on every fact (seed quote, LLM-extracted, search candidate). Facts that fail are dropped and logged, never stored.
+- **Score is computed in code** (`domain/rules/scoring.ts`), not picked by the LLM: weighted per-criterion verdicts, "unknown" gets 40% credit, a "meets/fails" that cites no real fact_id is downgraded to "unknown", non-e-commerce is capped at 20. Threshold 60 = qualified.
+- **Discovery (`npm run research`):** Tavily search by trigger → LLM picks brands → candidate kept only if its quote is in the search result text → same import pipeline as the seed list. If the source page can't be fetched, the search snippet is saved as the page text (so the quote check still has real text).
+- **LLM adapter:** `BaseLlm` = structured output → Zod → one retry with the error → `LlmOutputError` (caller flags for a human). Every attempt is logged to `agent_runs` with prompt version, tokens, cost, latency. Anthropic via `messages.parse` + `zodOutputFormat`; Gemini via fetch + JSON schema.
+- **Not done:** server-side refusal `fallbacks` (beta) not enabled; a refusal is treated as a failed attempt → human.
+- **Not verified end-to-end:** `.env.local` still has no DATABASE_URL / LLM / Tavily keys, so `db:push`, a real import and a real qualify run have NOT happened yet. Covered by use-case tests with fake ports (quote dropping, unbacked-verdict downgrade, score).

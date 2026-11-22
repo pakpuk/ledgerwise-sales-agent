@@ -2,10 +2,16 @@
 
 export type CompanyStatus = "new" | "researched" | "qualified" | "disqualified";
 
+export type CompanySource = "seed" | "research";
+
 export interface Company {
   id: string;
   name: string;
   domain: string;
+  website: string;
+  /** Why now: hiring / funding / expansion, as found in the source. */
+  trigger: string | null;
+  source: CompanySource;
   status: CompanyStatus;
   createdAt: Date;
 }
@@ -29,10 +35,18 @@ export interface Fact {
   quote: string;
 }
 
+export const CRITERIA = ["us_ecommerce", "revenue_range", "team_size", "trigger", "contact_role"] as const;
+export type Criterion = (typeof CRITERIA)[number];
+export type Verdict = "meets" | "fails" | "unknown";
+
+/** One line of the "why" behind a score. `meets`/`fails` always carry a quote + link. */
 export interface QualificationReason {
+  criterion: Criterion;
+  verdict: Verdict;
   reason: string;
-  quote: string;
-  sourceUrl: string;
+  factId: string | null;
+  quote: string | null;
+  sourceUrl: string | null;
 }
 
 export interface Qualification {
@@ -61,7 +75,7 @@ export interface Thread {
 }
 
 export type MessageDirection = "outbound" | "inbound";
-export type MessageStatus = "draft" | "approved" | "rejected" | "sent" | "received";
+export type MessageStatus = "draft" | "approved" | "rejected" | "sent" | "received" | "cancelled";
 
 /** A claim in an outbound message must point at a fact. */
 export interface Claim {
