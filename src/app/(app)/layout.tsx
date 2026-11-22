@@ -1,29 +1,21 @@
 import Link from "next/link";
 import { logout } from "@/app/actions/auth";
 import { Button } from "@/components/ui";
+import { NavLinks } from "@/components/nav-links";
 
 // Internal tool: pages read live DB data, so allow blocking navigations.
 export const instant = false;
 
-const NAV = [
-  { href: "/", label: "Home" },
-  { href: "/companies", label: "Companies" },
-  { href: "/review", label: "Review" },
-  { href: "/inbox", label: "Inbox" },
-  { href: "/calls", label: "Calls" },
-] as const;
-
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex flex-1 flex-col bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white">
-        <nav className="mx-auto flex max-w-5xl items-center gap-1 overflow-x-auto px-4 py-2">
-          <span className="mr-2 font-semibold sm:mr-4">Ledgerwise</span>
-          {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="rounded-md px-3 py-1.5 text-sm hover:bg-zinc-100">
-              {n.label}
-            </Link>
-          ))}
+      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/90 backdrop-blur">
+        <nav className="mx-auto flex max-w-5xl items-center gap-1 overflow-x-auto px-4 py-2.5">
+          <Link href="/" className="mr-2 flex items-center gap-2 sm:mr-5">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-900 text-sm font-bold text-white">L</span>
+            <span className="hidden font-semibold tracking-tight sm:inline">Ledgerwise</span>
+          </Link>
+          <NavLinks />
           <form action={logout} className="ml-auto">
             <Button variant="ghost" size="sm">
               Log out
@@ -31,7 +23,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
           </form>
         </nav>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 p-4">{children}</main>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
     </div>
   );
 }

@@ -103,3 +103,10 @@
 - **Live Cal.com booking test FAILED:** Cal.com returns `email_domain_cannot_receive_mail` for our `.sandbox` prospect addresses, so every live booking would have failed. Worse, the agent would then have told the prospect "that time was just taken". Fixed: a booking failure now hands the thread to a human; new optional `CAL_BOOKING_EMAIL` (a real team inbox) is used as the Cal.com attendee. Not re-tested live (no inbox configured yet).
 - Login page redesigned (clearer card, show/hide password, plain error message).
 - **Live Cal.com booking WORKS** with `CAL_BOOKING_EMAIL` set to the user's inbox (user approved): booked Mon Nov 23 9:00 AM EST (Cal.com id nA7zj2Eb2LGZu3cC9KQFKH); that slot then disappeared from availability. This was a test event in the user's calendar and can be cancelled in Cal.com.
+
+## Deploy fixes (2026-11-22, after the deadline crunch)
+- Vercel project had only `DATABASE_URL` (Neon integration): login was impossible (`APP_PASSWORD is not set` in the logs). Added the 10 missing variables via the Vercel connector, with a new production password and session secret.
+- Vercel **Deployment Protection** blocked anyone not logged into the owner's Vercel account (reviewers included). Turned it off with the user's OK; the app's own login still protects the data.
+- A Vercel "redeploy" reused the old build's environment (the warning banner stayed). A fresh build from GitHub fixed it.
+- Verified from outside: `/api/health` 200, `/` → `/login`, all 5 screens 200 with real data and no banner.
+- Small UI polish: sticky branded header with the current page highlighted.
