@@ -7,6 +7,7 @@ import { container, featureStatus } from "@/infrastructure/container";
 import { importCompanies, SeedListSchema } from "@/application/use-cases/import-companies";
 import { discoverCompanies } from "@/application/use-cases/discover-companies";
 import { qualifyCompany } from "@/application/use-cases/qualify-company";
+import { draftEmail } from "@/application/use-cases/draft-email";
 
 const args = process.argv.slice(2);
 const log = (m: string) => console.log(m);
@@ -36,6 +37,15 @@ async function main() {
       log(`qualified ${c.name}: ${q.score}`);
     } catch (e) {
       log(`qualify ${c.name} failed (needs a human look): ${(e as Error).message}`);
+    }
+  }
+
+  if (args.includes("--draft")) {
+    const threads = await deps.repo.listThreads();
+    const hasThread = new Set(threads.map((t) => t.company.id));
+    for (const c of (await deps.repo.listCompanies()).filter((c) => c.status === "qualified" && !hasThread.has(c.id))) {
+      const m = await draftEmail(deps, c.id).catch((e: Error) => (log(`draft ${c.name} failed: ${e.message}`), null));
+      if (m) log(`drafted ${c.name}${m.meta.needsHuman ? " (needs you)" : ""}`);
     }
   }
 }

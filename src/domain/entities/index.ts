@@ -91,7 +91,23 @@ export interface Message {
   subject: string | null;
   body: string;
   claims: Claim[];
+  /** Why the agent did this: route, escalation reason, rule violations, needsHuman. */
+  meta: MessageMeta;
+  sentAt: Date | null;
   createdAt: Date;
+}
+
+export interface MessageMeta {
+  needsHuman?: boolean;
+  reason?: string;
+  violations?: string[];
+  route?: string;
+  intent?: string;
+  confidence?: number;
+  slots?: { start: string; end: string; timezone: string; simulated: boolean }[];
+  editedByHuman?: boolean;
+  mailId?: string;
+  [key: string]: unknown;
 }
 
 export type ReplyIntent =

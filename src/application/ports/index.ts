@@ -1,6 +1,6 @@
 // Ports: the only way use cases talk to the outside world.
 import type { z } from "zod";
-import type { Company, CompanySource, Fact, Page, Qualification, QualificationReason, Slot } from "@/domain/entities";
+import type { Company, CompanySource, Contact, Fact, Message, Page, Qualification, QualificationReason, Slot, Thread, ThreadStatus } from "@/domain/entities";
 
 export type ModelTier = "fast" | "smart";
 
@@ -83,4 +83,31 @@ export interface SalesRepository {
   listFacts(companyId: string): Promise<Fact[]>;
   saveQualification(q: { companyId: string; score: number; reasons: QualificationReason[] }): Promise<Qualification>;
   recordRun(run: AgentRunRecord): Promise<void>;
+
+  // Conversations
+  getOrCreateContact(c: { companyId: string; name: string; email: string; timezone?: string | null }): Promise<Contact>;
+  createThread(contactId: string): Promise<Thread>;
+  getThread(id: string): Promise<ThreadView | null>;
+  listThreads(): Promise<ThreadView[]>;
+  setThreadStatus(id: string, status: ThreadStatus): Promise<void>;
+  saveMessage(m: NewMessage): Promise<Message>;
+  getMessage(id: string): Promise<Message | null>;
+  updateMessage(id: string, patch: Partial<Pick<Message, "status" | "subject" | "body" | "claims" | "meta" | "sentAt">>): Promise<void>;
+
+  // Opt-outs
+  /** Checks the exact email AND the company domain. */
+  findSuppression(email: string, companyDomain: string): Promise<{ value: string; kind: "email" | "domain" } | null>;
+  addSuppression(value: string, kind: "email" | "domain", reason: string): Promise<void>;
+  /** Cancel unsent drafts/approved messages to anyone at this company. Returns how many. */
+  cancelPendingMessages(companyId: string): Promise<number>;
+}
+
+export type NewMessage = Omit<Message, "id" | "createdAt" | "sentAt" | "meta" | "claims" | "subject"> &
+  Partial<Pick<Message, "meta" | "claims" | "subject" | "sentAt">>;
+
+export interface ThreadView {
+  thread: Thread;
+  contact: Contact;
+  company: Company;
+  messages: Message[]; // oldest first
 }

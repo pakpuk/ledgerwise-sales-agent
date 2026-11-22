@@ -8,6 +8,8 @@ import { container } from "@/infrastructure/container";
 import type { CompanyWithQualification } from "@/application/ports";
 import type { QualificationReason } from "@/domain/entities";
 import { scoreCompany } from "@/app/actions/companies";
+import { writeEmail } from "@/app/actions/review";
+import { QUALIFIED_THRESHOLD } from "@/domain/rules/scoring";
 import { cn } from "@/lib/utils";
 
 const SORTS = { score: "Best fit", name: "Name", newest: "Newest", facts: "Most facts" } as const;
@@ -96,6 +98,13 @@ function CompanyCard({ c }: { c: CompanyWithQualification }) {
           <span className="text-zinc-400 transition group-open:rotate-90">›</span>
         </summary>
         <div className="border-t border-zinc-100 p-4">
+          {q && q.score >= QUALIFIED_THRESHOLD && (
+            <form action={writeEmail} className="mb-4">
+              <input type="hidden" name="companyId" value={c.id} />
+              <Button size="sm">Write email</Button>
+              <span className="ml-2 text-xs text-zinc-500">The draft goes to the Review queue; nothing is sent automatically.</span>
+            </form>
+          )}
           {q ? (
             <ul className="flex flex-col gap-3">
               {q.reasons.map((r) => (

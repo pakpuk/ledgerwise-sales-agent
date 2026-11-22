@@ -10,7 +10,7 @@ import {
   index,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import type { Claim, QualificationReason } from "@/domain/entities";
+import type { Claim, MessageMeta, QualificationReason } from "@/domain/entities";
 
 const id = () => uuid("id").primaryKey().defaultRandom();
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -103,7 +103,7 @@ export const messages = pgTable(
     body: text("body").notNull(),
     claims: jsonb("claims").$type<Claim[]>().notNull().default([]),
     /** Why the agent chose this (route, escalation reason, guard violations). */
-    meta: jsonb("meta").$type<Record<string, unknown>>().notNull().default({}),
+    meta: jsonb("meta").$type<MessageMeta>().notNull().default({}),
     sentAt: timestamp("sent_at", { withTimezone: true }),
     createdAt: createdAt(),
   },

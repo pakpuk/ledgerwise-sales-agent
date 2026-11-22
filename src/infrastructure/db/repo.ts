@@ -1,6 +1,6 @@
-import { desc, eq, sql } from "drizzle-orm";
-import type { AgentRunRecord, CompanyWithQualification, SalesRepository } from "@/application/ports";
-import type { Company, Fact, Page, Qualification, QualificationReason } from "@/domain/entities";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
+import type { AgentRunRecord, CompanyWithQualification, NewMessage, SalesRepository, ThreadView } from "@/application/ports";
+import type { Company, Contact, Fact, Message, Page, Qualification, QualificationReason, Thread, ThreadStatus } from "@/domain/entities";
 import type { Db } from "./client";
 import * as t from "./schema";
 
@@ -60,5 +60,90 @@ export class DrizzleRepository implements SalesRepository {
 
   async recordRun(run: AgentRunRecord) {
     await this.db.insert(t.agentRuns).values({ ...run, error: run.error ?? null, subjectId: run.subjectId ?? null });
+  }
+
+  async getOrCreateContact(c: { companyId: string; name: string; email: string; timezone?: string | null }): Promise<Contact> {
+    const email = c.email.toLowerCase();
+    const [row] = await this.db
+      .insert(t.contacts)
+      .values({ ...c, email, timezone: c.timezone ?? null })
+      .onConflictDoUpdate({ target: t.contacts.email, set: { name: c.name } })
+      .returning();
+    return row;
+  }
+
+  async createThread(contactId: string): Promise<Thread> {
+    const [row] = await this.db.insert(t.threads).values({ contactId }).returning();
+    return row;
+  }
+
+  private async views(threads: Thread[]): Promise<ThreadView[]> {
+    if (threads.length === 0) return [];
+    const contactIds = [...new Set(threads.map((x) => x.contactId))];
+    const contacts = await this.db.select().from(t.contacts).where(inArray(t.contacts.id, contactIds));
+    const companyIds = [...new Set(contacts.map((c) => c.companyId))];
+    const [companies, messages] = await Promise.all([
+      this.db.select().from(t.companies).where(inArray(t.companies.id, companyIds)),
+      this.db.select().from(t.messages).where(inArray(t.messages.threadId, threads.map((x) => x.id))).orderBy(asc(t.messages.createdAt)),
+    ]);
+    const contactBy = new Map(contacts.map((c) => [c.id, c]));
+    const companyBy = new Map(companies.map((c) => [c.id, c]));
+    return threads.map((thread) => {
+      const contact = contactBy.get(thread.contactId)!;
+      return { thread, contact, company: companyBy.get(contact.companyId)!, messages: messages.filter((m) => m.threadId === thread.id) as Message[] };
+    });
+  }
+
+  async getThread(id: string): Promise<ThreadView | null> {
+    const rows = await this.db.select().from(t.threads).where(eq(t.threads.id, id));
+    return (await this.views(rows))[0] ?? null;
+  }
+
+  async listThreads(): Promise<ThreadView[]> {
+    return this.views(await this.db.select().from(t.threads).orderBy(desc(t.threads.createdAt)));
+  }
+
+  async setThreadStatus(id: string, status: ThreadStatus) {
+    await this.db.update(t.threads).set({ status }).where(eq(t.threads.id, id));
+  }
+
+  async saveMessage(m: NewMessage): Promise<Message> {
+    const [row] = await this.db.insert(t.messages).values({ ...m, meta: m.meta ?? {}, claims: m.claims ?? [], subject: m.subject ?? null }).returning();
+    return row as Message;
+  }
+
+  async getMessage(id: string): Promise<Message | null> {
+    const [row] = await this.db.select().from(t.messages).where(eq(t.messages.id, id));
+    return (row as Message) ?? null;
+  }
+
+  async updateMessage(id: string, patch: Partial<Pick<Message, "status" | "subject" | "body" | "claims" | "meta" | "sentAt">>) {
+    await this.db.update(t.messages).set(patch).where(eq(t.messages.id, id));
+  }
+
+  async findSuppression(email: string, companyDomain: string) {
+    const e = email.toLowerCase();
+    const [row] = await this.db
+      .select()
+      .from(t.suppressions)
+      .where(or(eq(t.suppressions.value, e), eq(t.suppressions.value, companyDomain.toLowerCase())));
+    return row ? { value: row.value, kind: row.kind } : null;
+  }
+
+  async addSuppression(value: string, kind: "email" | "domain", reason: string) {
+    await this.db.insert(t.suppressions).values({ value: value.toLowerCase(), kind, reason }).onConflictDoNothing();
+  }
+
+  async cancelPendingMessages(companyId: string): Promise<number> {
+    const contacts = await this.db.select({ id: t.contacts.id }).from(t.contacts).where(eq(t.contacts.companyId, companyId));
+    if (contacts.length === 0) return 0;
+    const threads = await this.db.select({ id: t.threads.id }).from(t.threads).where(inArray(t.threads.contactId, contacts.map((c) => c.id)));
+    if (threads.length === 0) return 0;
+    const rows = await this.db
+      .update(t.messages)
+      .set({ status: "cancelled" })
+      .where(and(inArray(t.messages.threadId, threads.map((x) => x.id)), inArray(t.messages.status, ["draft", "approved"])))
+      .returning({ id: t.messages.id });
+    return rows.length;
   }
 }

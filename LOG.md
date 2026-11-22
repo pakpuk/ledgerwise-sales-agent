@@ -31,3 +31,12 @@
 - **LLM adapter:** `BaseLlm` = structured output → Zod → one retry with the error → `LlmOutputError` (caller flags for a human). Every attempt is logged to `agent_runs` with prompt version, tokens, cost, latency. Anthropic via `messages.parse` + `zodOutputFormat`; Gemini via fetch + JSON schema.
 - **Not done:** server-side refusal `fallbacks` (beta) not enabled; a refusal is treated as a failed attempt → human.
 - **Not verified end-to-end:** `.env.local` still has no DATABASE_URL / LLM / Tavily keys, so `db:push`, a real import and a real qualify run have NOT happened yet. Covered by use-case tests with fake ports (quote dropping, unbacked-verdict downgrade, score).
+
+## Checkpoint 3 — draft email, review queue, send path (2026-11-22)
+
+- **One send path:** `send-message.ts` is the only caller of `MailPort.send`. At send time it re-checks: approved status, thread not stopped, suppression (exact email AND company domain), any inbound "stop" in the thread, price guard and claim guard. Blocked messages go back to the queue with reasons.
+- **Draft loop:** LLM draft → code appends the opt-out line → `checkFirstEmail` (price, every claim has a real fact_id, numbers in claims are in the quote, claim text is in the body, ≤120 words, ≥1 fact) → one regeneration with the violations → else saved as "Needs you" with the violations shown.
+- **Human edits** are re-checked at send (a test proves an edit adding "$99/mo" is blocked). Claims no longer in the edited text are dropped so the fact panel stays truthful.
+- **Mistake caught:** stop-suppression keyed on the email's domain would not have matched, because prospect emails are sandbox addresses (`prospect@acme.com.sandbox`). Changed `findSuppression(email, companyDomain)` and `cancelPendingMessages(companyId)`.
+- **Mistake caught:** `/review` was prerendered as a static page at build (no DB at build time) → would show stale data. Added `await connection()` to data pages.
+- **Assumption:** we never invent real contact emails. Each company gets a clearly-labelled sandbox inbox; the greeting name is used only if a fact names the person.
