@@ -30,9 +30,8 @@ export async function importCompanies(
     const { website, domain } = normalizeWebsite(s.website);
     const company = await deps.repo.upsertCompany({ name: s.name, domain, website, trigger: s.trigger, source });
     deps.log?.(`• ${s.name} (${domain})`);
-    const known: KnownFact[] = [
-      { sourceUrl: s.source_url, quote: s.quote, statement: `Trigger: ${s.trigger}`, fallbackText: s.fallbackText },
-    ];
+    // The statement is the verified quote itself, never the LLM's own summary of the trigger.
+    const known: KnownFact[] = [{ sourceUrl: s.source_url, quote: s.quote, statement: `Source says: ${s.quote}`, fallbackText: s.fallbackText }];
     const r = await researchCompany(deps, company, known);
     deps.log?.(`  pages=${r.pagesSaved} facts=${r.factsKept} dropped=${r.factsDropped}${r.errors.length ? ` errors=${r.errors.length}` : ""}`);
     results.push({ name: s.name, ...r });

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { priceGuard, isPricingQuestion } from "./price-guard";
 import { detectStop } from "./stop-detector";
 import { isBotQuestion } from "./bot-question";
-import { claimGuard, claimsInBody } from "./claim-guard";
+import { claimGuard, claimsInBody, claimSupportedByQuote } from "./claim-guard";
 import { shouldEscalate, type EscalationInput } from "./escalation";
 
 describe("priceGuard", () => {
@@ -57,6 +57,18 @@ describe("isBotQuestion", () => {
   it.each(["Your bot integration sounds useful", "We use AI in our accounting"])("ignores %s", (t) =>
     expect(isBotQuestion(t)).toBe(false),
   );
+});
+
+describe("claimSupportedByQuote (regressions from the first live run)", () => {
+  it("rejects a claim the quote doesn't support", () => {
+    const quote = "Blenders Eyewear, LLC.San Diego, CA 92109 - Strong understanding of e-commerce UX, merchandising, and conversion best practices.";
+    expect(claimSupportedByQuote("Hiring for fulfillment and operations roles", quote)).toBe(false);
+  });
+  it("accepts a faithful paraphrase", () => {
+    const quote = "Recent startup raises include Clove raising $1.9 million, Silk and Sonder raising $3.6 million, and Cake raising $1.4 million.";
+    expect(claimSupportedByQuote("Silk and Sonder raised $3.6 million", quote)).toBe(true);
+    expect(claimSupportedByQuote("We are hiring a Staff Accountant", "We are hiring a Staff Accountant to join our finance team")).toBe(true);
+  });
 });
 
 describe("claimGuard", () => {

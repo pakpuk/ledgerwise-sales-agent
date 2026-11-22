@@ -65,7 +65,7 @@ describe("qualifyCompany", () => {
     const revenue = q.reasons.find((r) => r.criterion === "revenue_range")!;
     expect(revenue.verdict).toBe("unknown");
     expect(q.reasons.find((r) => r.criterion === "trigger")!.sourceUrl).toBe("https://acme.com/careers");
-    expect(q.score).toBe(35 + 25 + 0.4 * (15 + 15 + 10));
+    expect(q.score).toBe(35 + 25 + 0.25 * (15 + 15 + 10));
     expect(repo.companies[0].status).toBe("qualified");
   });
 });

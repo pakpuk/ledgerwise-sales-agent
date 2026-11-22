@@ -63,7 +63,11 @@ npm run dev                    # http://localhost:3000, log in with APP_PASSWORD
 ## Evaluation
 `evals/replies.jsonl` has 17 cases: stop x4, bot question, pricing, objection, KB question, wants call, "Tuesday works" x2, maybe-later, hostile, legal, non-English, prompt injection, out-of-office. The runner uses the real `handleReply` use case and the real LLM with in-memory storage, and checks what was actually sent.
 
-Latest run without an LLM key (rules only): **routing 12/17, 0 rule violations, bookings 0/2**. All 5 misses went safely to a human. With an LLM key, run `npm run eval` and see `evals/results/latest.json`.
+Live runs with Gemini (`gemini-3.5-flash-lite` fast / `gemini-3.5-flash` smart), 2026-11-22, two runs:
+**routing 17/17 both times, 0 rule violations, bookings 2/2**, about 500 tokens per reply. Without an LLM key (rules only): routing 12/17, 0 violations, and every miss went to a human.
+Gemini 3.5 prices are not in `pricing.ts`, so cost is reported in tokens rather than a made-up dollar figure.
+
+`npm run research:dry -- --limit=3` runs the live research pipeline (Tavily + LLM + real page fetches) into memory, no database needed.
 
 ## Deploy (Vercel)
 1. Import the repo in Vercel (framework: Next.js, default build).

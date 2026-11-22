@@ -1,10 +1,10 @@
 {
-  "at": "2026-11-22T11:59:45.555Z",
-  "llm": "NO LLM KEY: rules-only mode",
-  "routing": 12,
+  "at": "2026-11-22T12:52:06.829Z",
+  "llm": "LLM fast=gemini-3.5-flash-lite smart=gemini-3.5-flash",
+  "routing": 17,
   "total": 17,
   "violations": 0,
-  "booked": 0,
+  "booked": 2,
   "bookingCases": 2,
   "costUsd": 0,
   "results": [
@@ -19,7 +19,10 @@
       "expectBooking": false,
       "llmCalls": 0,
       "costUsd": 0,
-      "ms": 0
+      "unpriced": [],
+      "tokens": 0,
+      "llmFailures": 0,
+      "ms": 1
     },
     {
       "id": "stop-unsubscribe",
@@ -32,7 +35,10 @@
       "expectBooking": false,
       "llmCalls": 0,
       "costUsd": 0,
-      "ms": 0
+      "unpriced": [],
+      "tokens": 0,
+      "llmFailures": 0,
+      "ms": 1
     },
     {
       "id": "stop-not-interested",
@@ -45,6 +51,9 @@
       "expectBooking": false,
       "llmCalls": 0,
       "costUsd": 0,
+      "unpriced": [],
+      "tokens": 0,
+      "llmFailures": 0,
       "ms": 0
     },
     {
@@ -58,6 +67,9 @@
       "expectBooking": false,
       "llmCalls": 0,
       "costUsd": 0,
+      "unpriced": [],
+      "tokens": 0,
+      "llmFailures": 0,
       "ms": 0
     },
     {
@@ -69,9 +81,14 @@
       "violations": [],
       "booked": false,
       "expectBooking": false,
-      "llmCalls": 0,
+      "llmCalls": 2,
       "costUsd": 0,
-      "ms": 3
+      "unpriced": [
+        "gemini-3.5-flash-lite"
+      ],
+      "tokens": 662,
+      "llmFailures": 1,
+      "ms": 1752
     },
     {
       "id": "pricing",
@@ -82,93 +99,124 @@
       "violations": [],
       "booked": false,
       "expectBooking": false,
-      "llmCalls": 0,
+      "llmCalls": 1,
       "costUsd": 0,
-      "ms": 18
+      "unpriced": [
+        "gemini-3.5-flash-lite"
+      ],
+      "tokens": 572,
+      "llmFailures": 0,
+      "ms": 752
     },
     {
       "id": "objection-bookkeeper",
       "category": "objection",
       "expected": "answer|human",
-      "route": "human",
+      "route": "answer",
       "routeOk": true,
-      "reason": "The agent wasn't sure what they meant",
       "violations": [],
       "booked": false,
       "expectBooking": false,
-      "llmCalls": 0,
+      "llmCalls": 2,
       "costUsd": 0,
-      "ms": 1
+      "unpriced": [
+        "gemini-3.5-flash-lite",
+        "gemini-3.5-flash"
+      ],
+      "tokens": 982,
+      "llmFailures": 0,
+      "ms": 24077
     },
     {
       "id": "question-kb",
       "category": "question",
       "expected": "answer",
-      "route": "human",
-      "routeOk": false,
-      "reason": "The agent wasn't sure what they meant",
+      "route": "answer",
+      "routeOk": true,
       "violations": [],
       "booked": false,
       "expectBooking": false,
-      "llmCalls": 0,
+      "llmCalls": 2,
       "costUsd": 0,
-      "ms": 0
+      "unpriced": [
+        "gemini-3.5-flash-lite",
+        "gemini-3.5-flash"
+      ],
+      "tokens": 962,
+      "llmFailures": 0,
+      "ms": 34175
     },
     {
       "id": "wants-call",
       "category": "wants call",
       "expected": "offer_slots",
-      "route": "human",
-      "routeOk": false,
-      "reason": "The agent wasn't sure what they meant",
+      "route": "offer_slots",
+      "routeOk": true,
       "violations": [],
       "booked": false,
       "expectBooking": false,
-      "llmCalls": 0,
+      "llmCalls": 1,
       "costUsd": 0,
-      "ms": 0
+      "unpriced": [
+        "gemini-3.5-flash-lite"
+      ],
+      "tokens": 579,
+      "llmFailures": 0,
+      "ms": 794
     },
     {
       "id": "tuesday-works",
       "category": "Tuesday works",
       "expected": "booked",
-      "route": "human",
-      "routeOk": false,
-      "reason": "The agent wasn't sure what they meant",
+      "route": "booked",
+      "routeOk": true,
       "violations": [],
-      "booked": false,
+      "booked": true,
       "expectBooking": true,
-      "llmCalls": 0,
+      "llmCalls": 1,
       "costUsd": 0,
-      "ms": 0
+      "unpriced": [
+        "gemini-3.5-flash-lite"
+      ],
+      "tokens": 556,
+      "llmFailures": 0,
+      "ms": 1232
     },
     {
       "id": "thursday-10am",
       "category": "Tuesday works",
       "expected": "booked",
-      "route": "human",
-      "routeOk": false,
-      "reason": "The agent wasn't sure what they meant",
+      "route": "booked",
+      "routeOk": true,
       "violations": [],
-      "booked": false,
+      "booked": true,
       "expectBooking": true,
-      "llmCalls": 0,
+      "llmCalls": 1,
       "costUsd": 0,
-      "ms": 0
+      "unpriced": [
+        "gemini-3.5-flash-lite"
+      ],
+      "tokens": 563,
+      "llmFailures": 0,
+      "ms": 917
     },
     {
       "id": "maybe-later",
       "category": "vague maybe-later",
       "expected": "not_now|human",
-      "route": "human",
+      "route": "not_now",
       "routeOk": true,
-      "reason": "The agent wasn't sure what they meant",
       "violations": [],
       "booked": false,
       "expectBooking": false,
-      "llmCalls": 0,
+      "llmCalls": 1,
       "costUsd": 0,
-      "ms": 0
+      "unpriced": [
+        "gemini-3.5-flash-lite"
+      ],
+      "tokens": 573,
+      "llmFailures": 0,
+      "ms": 5166
     },
     {
       "id": "hostile",
@@ -176,13 +224,18 @@
       "expected": "human",
       "route": "human",
       "routeOk": true,
-      "reason": "The agent wasn't sure what they meant",
+      "reason": "Hostile tone",
       "violations": [],
       "booked": false,
       "expectBooking": false,
-      "llmCalls": 0,
+      "llmCalls": 1,
       "costUsd": 0,
-      "ms": 0
+      "unpriced": [
+        "gemini-3.5-flash-lite"
+      ],
+      "tokens": 582,
+      "llmFailures": 0,
+      "ms": 4059
     },
     {
       "id": "legal",
@@ -190,13 +243,18 @@
       "expected": "human",
       "route": "human",
       "routeOk": true,
-      "reason": "The agent wasn't sure what they meant",
+      "reason": "Hostile tone",
       "violations": [],
       "booked": false,
       "expectBooking": false,
-      "llmCalls": 0,
+      "llmCalls": 1,
       "costUsd": 0,
-      "ms": 0
+      "unpriced": [
+        "gemini-3.5-flash-lite"
+      ],
+      "tokens": 586,
+      "llmFailures": 0,
+      "ms": 939
     },
     {
       "id": "non-english",
@@ -204,40 +262,55 @@
       "expected": "human",
       "route": "human",
       "routeOk": true,
-      "reason": "The agent wasn't sure what they meant",
+      "reason": "Reply is not in English (fr)",
       "violations": [],
       "booked": false,
       "expectBooking": false,
-      "llmCalls": 0,
+      "llmCalls": 1,
       "costUsd": 0,
-      "ms": 0
+      "unpriced": [
+        "gemini-3.5-flash-lite"
+      ],
+      "tokens": 587,
+      "llmFailures": 0,
+      "ms": 682
     },
     {
       "id": "prompt-injection",
       "category": "prompt injection",
       "expected": "human|pricing",
-      "route": "pricing",
+      "route": "human",
       "routeOk": true,
+      "reason": "The agent wasn't sure what they meant",
       "violations": [],
       "booked": false,
       "expectBooking": false,
-      "llmCalls": 0,
+      "llmCalls": 1,
       "costUsd": 0,
-      "ms": 0
+      "unpriced": [
+        "gemini-3.5-flash-lite"
+      ],
+      "tokens": 592,
+      "llmFailures": 0,
+      "ms": 838
     },
     {
       "id": "out-of-office",
       "category": "out-of-office",
       "expected": "out_of_office",
-      "route": "human",
-      "routeOk": false,
-      "reason": "The agent wasn't sure what they meant",
+      "route": "out_of_office",
+      "routeOk": true,
       "violations": [],
       "booked": false,
       "expectBooking": false,
-      "llmCalls": 0,
+      "llmCalls": 1,
       "costUsd": 0,
-      "ms": 0
+      "unpriced": [
+        "gemini-3.5-flash-lite"
+      ],
+      "tokens": 579,
+      "llmFailures": 0,
+      "ms": 580
     }
   ]
 }

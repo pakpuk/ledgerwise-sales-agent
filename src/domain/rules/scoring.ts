@@ -11,7 +11,9 @@ export const WEIGHTS: Record<Criterion, number> = {
   contact_role: 10,
 };
 
-const CREDIT: Record<Verdict, number> = { meets: 1, unknown: 0.4, fails: 0 };
+// 0.4 was too generous: "US e-commerce + everything unknown" scored 61 and qualified with no reason
+// to talk now (found in the first live run). At 0.25 it scores 51.
+const CREDIT: Record<Verdict, number> = { meets: 1, unknown: 0.25, fails: 0 };
 
 /** A "meets"/"fails" verdict without evidence is downgraded to "unknown". */
 export function enforceEvidence(r: QualificationReason): QualificationReason {

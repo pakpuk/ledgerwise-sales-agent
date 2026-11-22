@@ -7,7 +7,10 @@ const PRICES: Record<string, [number, number]> = {
   "gemini-2.5-flash": [0.3, 2.5],
   "gemini-2.5-flash-lite": [0.1, 0.4],
   "gemini-2.5-pro": [1.25, 10],
+  // gemini-3.5-* prices were not known when this was written: reports say "price unknown", never a fake $0.
 };
+
+export const isPriced = (model: string) => model in PRICES;
 
 export function costUsd(model: string, inputTokens: number, outputTokens: number): number {
   const p = PRICES[model];

@@ -14,7 +14,11 @@
     "research": "tsx --env-file-if-exists=.env.local scripts/research.ts",
     "research:seed": "tsx --env-file-if-exists=.env.local scripts/research.ts --seed",
     "eval": "tsx --env-file-if-exists=.env.local scripts/eval.ts",
-    "costs": "tsx --env-file-if-exists=.env.local scripts/costs.ts"
+    "costs": "tsx --env-file-if-exists=.env.local scripts/costs.ts",
+    "research:dry": "tsx --env-file-if-exists=.env.local scripts/research-dry.ts",
+    "db:status": "tsx --env-file-if-exists=.env.local scripts/db-status.ts",
+    "inspect": "tsx --env-file-if-exists=.env.local scripts/inspect.ts",
+    "recheck-drafts": "tsx --env-file-if-exists=.env.local scripts/recheck-drafts.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.12.0",

@@ -56,7 +56,11 @@ export async function handleReply(deps: Deps, threadId: string, text: string): P
   // 2. Classify (fast model). Without an LLM, only the safe fixed answers are automatic.
   const lastOut = [...view.messages].reverse().find((m) => m.direction === "outbound" && m.status === "sent");
   const cls = await classify(deps.llm, text, lastOut?.body ?? null, threadId);
-  if (isBotQuestion(text)) cls.intent = "bot_question"; // honesty is not left to the model
+  if (isBotQuestion(text)) {
+    // Honesty is not left to the model: a detected bot question always gets the fixed honest answer.
+    cls.intent = "bot_question";
+    cls.confidence = 1;
+  }
 
   // 3. Route.
   if (cls.intent === "out_of_office") {
@@ -125,7 +129,7 @@ async function classify(llm: LlmPort, text: string, lastOut: string | null, thre
   try {
     return await llm.json({ kind: "classify_reply", promptVersion: CLASSIFY_VERSION, tier: "fast", system: classifySystem, prompt: classifyPrompt(text, lastOut), schema: ClassifySchema, subjectId: threadId });
   } catch (e) {
-    if (e instanceof LlmOutputError) return { ...fallback(), intent: "unsure", confidence: 0 };
+    if (e instanceof LlmOutputError) return fallback(); // same safe fallback as "no LLM"
     throw e;
   }
 }

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { FakeCalendar, FakeMail, FakeRepo } from "@/application/use-cases/fakes";
 import { handleReply, type Route } from "@/application/use-cases/handle-reply";
 import { makeLlm } from "@/infrastructure/container";
+import { isPriced } from "@/infrastructure/llm/pricing";
 import { priceGuard } from "@/domain/rules/price-guard";
 import { BOT_ANSWER } from "@/domain/rules/bot-question";
 
@@ -77,6 +78,9 @@ async function runCase(c: EvalCase) {
     expectBooking: Boolean(c.expectBooking),
     llmCalls: repo.runs.length,
     costUsd: repo.runs.reduce((s, r) => s + r.costUsd, 0),
+    unpriced: [...new Set(repo.runs.filter((r) => !isPriced(r.model)).map((r) => r.model))],
+    tokens: repo.runs.reduce((s, r) => s + r.inputTokens + r.outputTokens, 0),
+    llmFailures: repo.runs.filter((r) => !r.ok).length,
     ms: Date.now() - started,
   };
 }
@@ -107,7 +111,16 @@ async function main() {
   console.log(`\nRouting accuracy : ${routing}/${results.length} (${Math.round((100 * routing) / results.length)}%)`);
   console.log(`Rule violations  : ${violations}`);
   console.log(`Booking success  : ${booked}/${bookingCases.length}`);
-  console.log(`LLM cost         : $${cost.toFixed(4)} total, $${(cost / results.length).toFixed(5)} per reply`);
+  const unpriced = [...new Set(results.flatMap((r) => r.unpriced))];
+  const tokens = results.reduce((s, r) => s + r.tokens, 0);
+  const llmCalls = results.reduce((s, r) => s + r.llmCalls, 0);
+  const llmFailures = results.reduce((s, r) => s + r.llmFailures, 0);
+  console.log(`LLM calls        : ${llmCalls} (${llmFailures} failed attempts), ${tokens} tokens, ${Math.round(tokens / results.length)} per reply`);
+  console.log(
+    unpriced.length
+      ? `LLM cost         : price unknown for ${unpriced.join(", ")} (use the token counts)`
+      : `LLM cost         : $${cost.toFixed(4)} total, $${(cost / results.length).toFixed(5)} per reply`,
+  );
 
   mkdirSync("evals/results", { recursive: true });
   writeFileSync(

@@ -35,7 +35,7 @@ export function makeLlm(record: SalesRepository["recordRun"], env = process.env)
     return new AnthropicLlm(env.ANTHROPIC_API_KEY, { fast: env.MODEL_FAST || "claude-haiku-5-5", smart: env.MODEL_SMART || "claude-opus-5-5" }, record);
   }
   if (env.GEMINI_API_KEY) {
-    return new GeminiLlm(env.GEMINI_API_KEY, { fast: env.MODEL_FAST || "gemini-2.5-flash-lite", smart: env.MODEL_SMART || "gemini-2.5-flash" }, record);
+    return new GeminiLlm(env.GEMINI_API_KEY, { fast: env.MODEL_FAST || "gemini-3.5-flash-lite", smart: env.MODEL_SMART || "gemini-3.5-flash" }, record);
   }
   return new NoLlm();
 }

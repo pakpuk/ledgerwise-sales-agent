@@ -34,7 +34,7 @@ describe("scoring", () => {
     ).toBe(100);
   });
   it("gives partial credit for unknown", () => {
-    expect(scoreFit([r("us_ecommerce", "meets"), r("trigger", "unknown", false)])).toBe(35 + 10);
+    expect(scoreFit([r("us_ecommerce", "meets"), r("trigger", "unknown", false)])).toBe(Math.round(35 + 0.25 * 25));
   });
   it("caps non-ecommerce companies", () => {
     expect(scoreFit([r("us_ecommerce", "fails"), r("trigger", "meets"), r("revenue_range", "meets")])).toBe(20);

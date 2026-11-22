@@ -3,7 +3,7 @@ import { CRITERIA } from "@/domain/entities";
 import type { Fact } from "@/domain/entities";
 import { ICP, UNTRUSTED_RULE, untrusted } from "./shared";
 
-export const QUALIFY_VERSION = "qualify@1";
+export const QUALIFY_VERSION = "qualify@2";
 
 export const QualifySchema = z.object({
   criteria: z
@@ -25,7 +25,10 @@ Judge each criterion exactly once: ${CRITERIA.join(", ")}.
 - us_ecommerce: a US brand selling online (Shopify, Amazon, own store).
 - revenue_range: roughly $1M-$10M yearly revenue.
 - team_size: 5-50 employees.
-- trigger: hiring finance/accounting/ops, recent funding, or expansion (wholesale, Amazon, retail, new countries).
+- trigger: a reason to talk NOW: hiring specifically for finance, accounting, bookkeeping or operations roles; funding
+  raised in the last ~18 months; or a recent expansion (wholesale, Amazon, retail stores, new countries).
+  Hiring for other roles (marketing, design, e-commerce UX, sales) is NOT a trigger. Funding or news older than ~18 months,
+  or with no visible date, is NOT proof: use "unknown". Today is ${new Date().toISOString().slice(0, 10)}.
 - contact_role: a named founder, COO or finance lead is identifiable.
 Use ONLY the numbered facts. "meets" or "fails" MUST cite the fact_id that proves it.
 If no fact proves it either way, the verdict is "unknown" with fact_id null. Never infer revenue or headcount from vibes.
