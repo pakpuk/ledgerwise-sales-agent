@@ -22,7 +22,7 @@ export interface EscalationResult {
 export const MIN_CONFIDENCE = 0.7;
 export const MAX_AGENT_REPLIES = 4;
 
-const LEGAL = /\b(lawyer|attorney|legal action|lawsuit|sue|gdpr|ccpa|complain(?:t)?|report you|ftc|cease and desist)\b/i;
+const LEGAL = /\b(lawyer|attorney|legal action|lawsuit|sue|gdpr|ccpa|complain(?:t)?|report you|ftc|can-?spam|cease and desist)\b/i;
 const HOSTILE = /\b(scam|spam(?:mer)?|f+u+c*k|shit|idiot|stupid|harass(?:ing|ment)?|go away|piss off)\b/i;
 
 export function shouldEscalate(i: EscalationInput): EscalationResult {

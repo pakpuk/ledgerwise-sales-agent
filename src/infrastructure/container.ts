@@ -28,21 +28,23 @@ export function featureStatus(env = process.env): FeatureStatus[] {
   ];
 }
 
+/** Picks the LLM adapter from env. Exported so the eval runner can use it without a database. */
+export function makeLlm(record: SalesRepository["recordRun"], env = process.env): LlmPort {
+  const provider = (env.LLM_PROVIDER ?? "").toLowerCase();
+  if (env.ANTHROPIC_API_KEY && provider !== "gemini") {
+    return new AnthropicLlm(env.ANTHROPIC_API_KEY, { fast: env.MODEL_FAST || "claude-haiku-5-5", smart: env.MODEL_SMART || "claude-opus-5-5" }, record);
+  }
+  if (env.GEMINI_API_KEY) {
+    return new GeminiLlm(env.GEMINI_API_KEY, { fast: env.MODEL_FAST || "gemini-2.5-flash-lite", smart: env.MODEL_SMART || "gemini-2.5-flash" }, record);
+  }
+  return new NoLlm();
+}
+
 let cached: ReturnType<typeof build> | null = null;
 
 function build() {
   const repo: SalesRepository = new DrizzleRepository(getDb());
-  const record = (r: Parameters<SalesRepository["recordRun"]>[0]) => repo.recordRun(r);
-  const provider = (process.env.LLM_PROVIDER ?? "").toLowerCase();
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY;
-
-  let llm: LlmPort = new NoLlm();
-  if (anthropicKey && provider !== "gemini") {
-    llm = new AnthropicLlm(anthropicKey, { fast: process.env.MODEL_FAST || "claude-haiku-5-5", smart: process.env.MODEL_SMART || "claude-opus-5-5" }, record);
-  } else if (geminiKey) {
-    llm = new GeminiLlm(geminiKey, { fast: process.env.MODEL_FAST || "gemini-2.5-flash-lite", smart: process.env.MODEL_SMART || "gemini-2.5-flash" }, record);
-  }
+  const llm = makeLlm((r) => repo.recordRun(r));
 
   const search: SearchPort = process.env.TAVILY_API_KEY ? new TavilySearch(process.env.TAVILY_API_KEY) : new NoSearch();
   const calKey = process.env.CAL_API_KEY;

@@ -13,7 +13,7 @@ describe("priceGuard", () => {
     "Plans start at $49 per month.",
     "It's only $29",
     "about 500 USD",
-    "€1,200 per year",
+    "â‚¬1,200 per year",
     "Starting at a low rate",
     "billed per month",
     "just 300/mo",
@@ -40,6 +40,7 @@ describe("detectStop", () => {
     "stop emailing us",
     "Not interested, thanks",
     "opt-out",
+    "Stop spamming me you idiots",
   ])("detects %s", (t) => expect(detectStop(t).stop).toBe(true));
 
   it.each(["Sounds interesting, tell me more", "Can we talk next week?", "What does it cost?"])(
@@ -100,6 +101,7 @@ describe("shouldEscalate", () => {
     ["human took over", { threadStatus: "human" }],
     ["legal wording", { text: "Our lawyer will be in touch" }],
     ["hostile", { text: "this is a scam" }],
+    ["CAN-SPAM", { text: "This violates CAN-SPAM" }],
     ["hostile intent", { intent: "hostile" }],
     ["non-English", { language: "fr" }],
     ["outside KB", { intent: "question", answerableFromKb: false }],

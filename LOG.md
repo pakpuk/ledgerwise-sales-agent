@@ -58,3 +58,12 @@
 - **Calls page:** upcoming/past, time in the prospect's timezone, badge "In Cal.com" vs "Simulated calendar", link to the conversation.
 - **Home = "Needs your attention"** (claude.md asked for it): counts + the threads waiting for a human with the reason.
 - **Not verified live:** the Cal.com adapter was written from the v2 API docs I know; no key was available to test it. Known risk: Cal.com sends invites to the attendee email, which is a `.sandbox` address (will bounce, by design).
+
+## Checkpoint 6 — evals, costs, README, deploy check (2026-11-22)
+
+- **Eval set:** `evals/replies.jsonl`, 17 cases (stop x4, bot, pricing, objection, KB question, wants call, "Tuesday works" x2, maybe-later, hostile, legal, non-English, prompt injection, out-of-office). `npm run eval` runs the real `handleReply` with the real LLM and in-memory storage, and checks what was actually sent: price violations, replies after stop, domain suppression, honest bot answer, nothing sent while escalating.
+- **Result without an LLM key (rules only): routing 12/17, 0 violations, booking 0/2.** The 5 misses (KB question, wants call, 2 bookings, out-of-office) need the classifier; without it they went to a human, which is the safe failure. NOT yet run with a real model, because no key was available.
+- **Gaps found while writing the evals (fixed + tested):** "Stop spamming me" was not caught as an opt-out; "CAN-SPAM" was not treated as legal wording.
+- **Mistake:** an earlier Python edit saved `guards.test.ts` as cp1252, which corrupted the "€" in a test string. The test still passed only because "per year" matched. Re-saved as UTF-8 and checked that every file is valid UTF-8.
+- **Costs:** `npm run costs` reads `agent_runs` → spend by kind, cost per lead (research+qualify+draft ÷ companies), cost per reply (classify+answer ÷ inbound replies).
+- **Deploy check (local prod build):** `next build` OK; `next start`: `/api/health` 200, unauthenticated `/` → 307 `/login`, all 5 screens 200 with a valid session and show the "not connected" banner. Vercel deploy not done (Vercel CLI not installed, no DB/LLM keys yet).
