@@ -63,9 +63,14 @@ npm run dev                    # http://localhost:3000, log in with APP_PASSWORD
 ## Evaluation
 `evals/replies.jsonl` has 17 cases: stop x4, bot question, pricing, objection, KB question, wants call, "Tuesday works" x2, maybe-later, hostile, legal, non-English, prompt injection, out-of-office. The runner uses the real `handleReply` use case and the real LLM with in-memory storage, and checks what was actually sent.
 
-Live runs with Gemini (`gemini-3.5-flash-lite` fast / `gemini-3.5-flash` smart), 2026-11-22, two runs:
-**routing 17/17 both times, 0 rule violations, bookings 2/2**, about 500 tokens per reply. Without an LLM key (rules only): routing 12/17, 0 violations, and every miss went to a human.
-Gemini 3.5 prices are not in `pricing.ts`, so cost is reported in tokens rather than a made-up dollar figure.
+**Final run (2026-11-22, `gemini-3.5-flash-lite` for both tiers): routing 17/17, 0 rule violations, bookings 2/2, ~490 tokens per reply.**
+Earlier live runs with `gemini-3.5-flash` as the smart model gave the same 17/17, 0 violations, 2/2 (two runs). Without an LLM key (rules only): 12/17, 0 violations, and every miss went safely to a human.
+17 cases is a small sample: it shows the routing works on the main reply types, not a measured error rate.
+
+**Live LLM calls run on a free Gemini quota.** The smart model (`gemini-3.5-flash`) ran out of quota mid-build, so the deployed config uses `gemini-3.5-flash-lite` for both tiers. If the quota runs out in production, replies go to "Needs you" with the reason, nothing is sent, and the Score/Write buttons show a notice instead of failing.
+Gemini 3.5 prices are not in `pricing.ts`, so usage is reported in tokens, not a made-up dollar figure: research+qualify+draft ≈ **12.5k tokens per lead** (21 companies, 262k tokens over 121 calls).
+
+**Pipeline results (live, 2026-11-22):** 21 companies researched (51 pages, 121 verified facts, 0 quotes accepted without a match on the page), 13 qualified, 15 drafts (11 pass all rules, 4 need review). Known gap: when revenue/team size is unknown it doesn't count against a company, so a few much larger brands qualified. A human should check size on the Companies page.
 
 `npm run research:dry -- --limit=3` runs the live research pipeline (Tavily + LLM + real page fetches) into memory, no database needed.
 
@@ -75,6 +80,6 @@ Gemini 3.5 prices are not in `pricing.ts`, so cost is reported in tokens rather 
 3. Run `npm run db:push` once against the production database, then run research locally (`npm run research:seed`). Long research runs as a script, not in a serverless request.
 4. Check: `/api/health` returns `{ok:true}`, `/` redirects to `/login`, and after login every screen loads.
 
-Known limits: no real email sending (sandbox only); Cal.com adapter not yet tested against a live account; re-drafting a company creates a new thread.
+Known limits: no real email sending (sandbox only); Cal.com availability is tested live (event type "30 min", slots filtered to 9:00-17:00 in the prospect's timezone) but a live booking has not been made; only 21 companies researched so far (target 30); re-drafting a company creates a new thread.
 
 More: `docs/ASSUMPTIONS.md` (things to confirm with the client), `LOG.md` (build journal, mistakes, plan changes).

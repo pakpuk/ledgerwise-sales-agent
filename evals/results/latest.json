@@ -1,6 +1,6 @@
 {
-  "at": "2026-11-22T12:52:06.829Z",
-  "llm": "LLM fast=gemini-3.5-flash-lite smart=gemini-3.5-flash",
+  "at": "2026-11-22T13:27:25.366Z",
+  "llm": "LLM fast=gemini-3.5-flash-lite smart=gemini-3.5-flash-lite",
   "routing": 17,
   "total": 17,
   "violations": 0,
@@ -38,7 +38,7 @@
       "unpriced": [],
       "tokens": 0,
       "llmFailures": 0,
-      "ms": 1
+      "ms": 0
     },
     {
       "id": "stop-not-interested",
@@ -81,14 +81,14 @@
       "violations": [],
       "booked": false,
       "expectBooking": false,
-      "llmCalls": 2,
+      "llmCalls": 1,
       "costUsd": 0,
       "unpriced": [
         "gemini-3.5-flash-lite"
       ],
-      "tokens": 662,
-      "llmFailures": 1,
-      "ms": 1752
+      "tokens": 568,
+      "llmFailures": 0,
+      "ms": 17211
     },
     {
       "id": "pricing",
@@ -106,7 +106,7 @@
       ],
       "tokens": 572,
       "llmFailures": 0,
-      "ms": 752
+      "ms": 831
     },
     {
       "id": "objection-bookkeeper",
@@ -120,12 +120,11 @@
       "llmCalls": 2,
       "costUsd": 0,
       "unpriced": [
-        "gemini-3.5-flash-lite",
-        "gemini-3.5-flash"
+        "gemini-3.5-flash-lite"
       ],
-      "tokens": 982,
+      "tokens": 998,
       "llmFailures": 0,
-      "ms": 24077
+      "ms": 4278
     },
     {
       "id": "question-kb",
@@ -139,12 +138,11 @@
       "llmCalls": 2,
       "costUsd": 0,
       "unpriced": [
-        "gemini-3.5-flash-lite",
-        "gemini-3.5-flash"
+        "gemini-3.5-flash-lite"
       ],
-      "tokens": 962,
+      "tokens": 952,
       "llmFailures": 0,
-      "ms": 34175
+      "ms": 4818
     },
     {
       "id": "wants-call",
@@ -160,9 +158,9 @@
       "unpriced": [
         "gemini-3.5-flash-lite"
       ],
-      "tokens": 579,
+      "tokens": 567,
       "llmFailures": 0,
-      "ms": 794
+      "ms": 8493
     },
     {
       "id": "tuesday-works",
@@ -180,7 +178,7 @@
       ],
       "tokens": 556,
       "llmFailures": 0,
-      "ms": 1232
+      "ms": 837
     },
     {
       "id": "thursday-10am",
@@ -198,7 +196,7 @@
       ],
       "tokens": 563,
       "llmFailures": 0,
-      "ms": 917
+      "ms": 1007
     },
     {
       "id": "maybe-later",
@@ -216,7 +214,7 @@
       ],
       "tokens": 573,
       "llmFailures": 0,
-      "ms": 5166
+      "ms": 690
     },
     {
       "id": "hostile",
@@ -235,7 +233,7 @@
       ],
       "tokens": 582,
       "llmFailures": 0,
-      "ms": 4059
+      "ms": 4639
     },
     {
       "id": "legal",
@@ -247,14 +245,14 @@
       "violations": [],
       "booked": false,
       "expectBooking": false,
-      "llmCalls": 1,
+      "llmCalls": 2,
       "costUsd": 0,
       "unpriced": [
         "gemini-3.5-flash-lite"
       ],
-      "tokens": 586,
-      "llmFailures": 0,
-      "ms": 939
+      "tokens": 667,
+      "llmFailures": 1,
+      "ms": 14226
     },
     {
       "id": "non-english",
@@ -273,7 +271,7 @@
       ],
       "tokens": 587,
       "llmFailures": 0,
-      "ms": 682
+      "ms": 7165
     },
     {
       "id": "prompt-injection",
@@ -290,9 +288,9 @@
       "unpriced": [
         "gemini-3.5-flash-lite"
       ],
-      "tokens": 592,
+      "tokens": 580,
       "llmFailures": 0,
-      "ms": 838
+      "ms": 922
     },
     {
       "id": "out-of-office",
@@ -308,9 +306,9 @@
       "unpriced": [
         "gemini-3.5-flash-lite"
       ],
-      "tokens": 579,
+      "tokens": 591,
       "llmFailures": 0,
-      "ms": 580
+      "ms": 5091
     }
   ]
 }

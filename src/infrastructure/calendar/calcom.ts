@@ -31,9 +31,13 @@ export class CalComCalendar implements CalendarPort {
     const res = await fetch(url, { headers: this.headers("2024-09-04"), signal: AbortSignal.timeout(15_000) });
     if (!res.ok) throw new Error(`Cal.com slots HTTP ${res.status}`);
     const body = SlotsResponse.parse(await res.json());
+    // Only offer business hours (9:00-17:00) in the prospect's timezone: the Cal.com schedule may be
+    // set in another timezone (found live: a Europe-based schedule produced 3 AM Eastern slots).
+    const hourIn = (d: Date) => Number(new Intl.DateTimeFormat("en-US", { timeZone: timezone, hour: "numeric", hour12: false }).format(d)) % 24;
     const starts = Object.values(body.data)
       .flat()
-      .map((s) => new Date("start" in s ? s.start : s.time));
+      .map((s) => new Date("start" in s ? s.start : s.time))
+      .filter((d) => hourIn(d) >= 9 && hourIn(d) < 17);
     // One slot per day first so the 3 offered times are on different days.
     const byDay = new Map<string, Date[]>();
     for (const s of starts.sort((a, b) => +a - +b)) {

@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { SearchResult } from "@/application/ports";
 import { ICP, UNTRUSTED_RULE, untrusted } from "./shared";
 
-export const FIND_CANDIDATES_VERSION = "find-candidates@1";
+export const FIND_CANDIDATES_VERSION = "find-candidates@2";
 
 export const FindCandidatesSchema = z.object({
   candidates: z
@@ -24,6 +24,7 @@ ${ICP}
 From the results, list real, specific e-commerce brands that may fit and have a reason to talk now.
 For each: brand name, its own website (homepage URL, not a news site), the trigger, the source_url of the result,
 and a quote copied EXACTLY from that result's content that shows the trigger.
+Prefer triggers from 2025-2026; skip results that are clearly older (e.g. funding in 2020-2023).
 Skip big public companies, agencies, marketplaces, software vendors and anything you are unsure about. ${UNTRUSTED_RULE}`;
 
 export function findCandidatesPrompt(results: SearchResult[]): string {

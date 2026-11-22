@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { LlmPort } from "@/application/ports";
+import { LlmOutputError, type LlmPort } from "@/application/ports";
 import type { ClassifyOutput } from "@/application/prompts/reply";
 import { FakeCalendar, FakeLlm, FakeMail, FakeRepo } from "./fakes";
 import { handleReply } from "./handle-reply";
@@ -107,6 +107,29 @@ describe("handleReply", () => {
     expect((await handleReply(deps, thread.id, "Tuesday works")).route).toBe("human");
     expect(llm.calls).toHaveLength(0);
     expect(mail.sent).toHaveLength(0);
+  });
+
+  it("AI quota exhausted: clear 'Needs you' reason, nothing sent, no crash", async () => {
+    const quota: LlmPort = { available: true, json: async () => { throw new LlmOutputError("Gemini HTTP 429: You exceeded your current quota"); } };
+    const { mail, repo, thread, deps } = await setup(quota);
+    const r = await handleReply(deps, thread.id, "Tell me more about how you work");
+    expect(r.route).toBe("human");
+    expect(r.reason).toMatch(/quota/i);
+    expect(mail.sent).toHaveLength(0);
+    expect(repo.threads[0].status).toBe("human");
+    expect(repo.messages.find((m) => m.direction === "inbound")!.meta.needsHuman).toBe(true);
+  });
+
+  it("calendar outage mid-reply: handed to a human, nothing sent", async () => {
+    const { mail, repo, thread, calendar, deps } = await setup(new FakeLlm({ classify_reply: cls({ intent: "pricing" }) }));
+    calendar.availableSlots = async () => {
+      throw new Error("Cal.com slots HTTP 503");
+    };
+    const r = await handleReply(deps, thread.id, "How much is it?");
+    expect(r.route).toBe("human");
+    expect(r.reason).toMatch(/Cal\.com/);
+    expect(mail.sent).toHaveLength(0);
+    expect(repo.threads[0].status).toBe("human");
   });
 
   it("no LLM: pricing still gets the safe fixed answer, the rest goes to a human", async () => {

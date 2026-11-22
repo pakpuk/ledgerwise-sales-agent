@@ -86,3 +86,15 @@
 - **Old drafts re-checked** (`npm run recheck-drafts`, non-destructive): both are flagged "Needs you" with the reason. Nothing was deleted.
 - **App on the live DB:** production build + `next start`: all 5 screens 200 with real data.
 - **Open:** no qualified companies yet (the case needs >= 30 researched); the Gemini quota is the bottleneck. `CAL_EVENT_TYPE_ID` missing, so Cal.com is untested and slots are simulated. Gemini 3.5 prices unknown, so costs are in tokens (39.5k tokens for 3 researched companies, ~500 per reply).
+
+## Final pass (2026-11-22)
+
+- **User decision:** use the fast model for both tiers (`MODEL_SMART=gemini-3.5-flash-lite`) because of the free-quota limit on `gemini-3.5-flash`.
+- **Discovery widened** to 16 recency-focused queries (`find-candidates@2` prefers 2025-2026 triggers). Found 18 candidates → **21 companies total (target was 30), 13 qualified, 15 drafts (11 pass, 4 need review)**. Qualification rules were NOT loosened.
+- **Precision gap (not fixed, scope frozen):** when revenue/team size is unknown it doesn't count against a company, so large brands (e.g. Vuori, Shapermint, OOFOS) qualified. Needs a human check on size.
+- **Cal.com:** listed event types via the API, chose 8021783 ("Rendez-vous de 30 min"). Real availability works. **Bug found live:** the Cal.com schedule is in a European timezone, so the first slots were 3:00 AM Eastern. Fixed: only offer 9:00-17:00 in the prospect's timezone (20 slots/week). No live booking made (it would create a real event).
+- **Graceful failure gaps (fixed + tested):** non-"invalid output" errors in reply classification, KB answers or the calendar would have thrown. Now one outer guard in `handleReply` hands the thread to a human with the reason ("AI quota exhausted: please reply yourself") and sends nothing. The Score/Write email buttons show an amber "Needs you" notice instead of an error page. 2 new tests (quota, Cal.com outage).
+- **Misleading number fixed:** `npm run costs` printed "$0.0000" for unpriced models. It now says "price unknown" and reports tokens: ~12.5k tokens per lead (262k tokens / 121 calls / 21 companies).
+- **Final eval:** 17/17 routing, 0 violations, 2/2 bookings, ~490 tokens/reply (fast model both tiers).
+- **Secret scan:** history + tree. Only match = the `SESSION_SECRET` placeholder in `.env.example` (false positive). Real keys only in gitignored `.env.local`, never committed.
+- **GitHub CLI not installed** → the push is left to the user.

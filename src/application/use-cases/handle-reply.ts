@@ -29,7 +29,25 @@ export interface ReplyOutcome {
 const NOT_NOW_TEXT = "Understood, thanks for letting me know. I'll leave it here. If clean monthly books become a priority, just reply to this email.";
 const SLOTS_OUTRO = "If none of these work, reply with a time that suits you and I'll find one.";
 
+/**
+ * Never crashes and never sends on failure: if anything unexpected breaks after the reply is saved
+ * (AI outage, calendar down, DB hiccup), the thread goes to a human with the reason.
+ */
 export async function handleReply(deps: Deps, threadId: string, text: string): Promise<ReplyOutcome> {
+  try {
+    return await handleReplyUnguarded(deps, threadId, text);
+  } catch (e) {
+    const reason = `Something failed (${(e as Error).message.slice(0, 120)}): please reply yourself`;
+    const view = await deps.repo.getThread(threadId).catch(() => null);
+    if (!view) throw e; // thread doesn't exist: nothing to hand over
+    const inbound = [...view.messages].reverse().find((m) => m.direction === "inbound");
+    if (view.thread.status !== "stopped") await deps.repo.setThreadStatus(threadId, "human");
+    if (inbound) await deps.repo.updateMessage(inbound.id, { meta: { ...inbound.meta, route: "human", needsHuman: true, reason } });
+    return { route: "human", intent: null, reason };
+  }
+}
+
+async function handleReplyUnguarded(deps: Deps, threadId: string, text: string): Promise<ReplyOutcome> {
   const { repo } = deps;
   const view = await repo.getThread(threadId);
   if (!view) throw new Error("Thread not found");
@@ -79,7 +97,7 @@ export async function handleReply(deps: Deps, threadId: string, text: string): P
     agentRepliesInThread: agentReplies,
     answerableFromKb: cls.intent === "question" || cls.intent === "objection" ? Boolean(kbId) : undefined,
   });
-  if (esc.escalate) return escalate(deps, view, inbound, cls, esc.reason ?? "Unsure");
+  if (esc.escalate) return escalate(deps, view, inbound, cls, cls.aiDown && cls.intent === "unsure" ? `${cls.aiDown}: please reply yourself` : (esc.reason ?? "Unsure"));
 
   const base: MessageMeta = { intent: cls.intent, confidence: cls.confidence };
 
@@ -116,21 +134,22 @@ export async function handleReply(deps: Deps, threadId: string, text: string): P
   }
 }
 
-async function classify(llm: LlmPort, text: string, lastOut: string | null, threadId: string): Promise<ClassifyOutput> {
+async function classify(llm: LlmPort, text: string, lastOut: string | null, threadId: string): Promise<ClassifyOutput & { aiDown?: string }> {
   // Without a (valid) LLM answer, only the fixed, safe answers are automatic; everything else -> human.
-  const fallback = (): ClassifyOutput => ({
+  const fallback = (): ClassifyOutput & { aiDown?: string } => ({
     intent: isBotQuestion(text) ? "bot_question" : isPricingQuestion(text) ? "pricing" : "unsure",
     confidence: isBotQuestion(text) || isPricingQuestion(text) ? 0.9 : 0,
     language: "en",
     kb_entry_id: null,
     preferred_time: null,
   });
-  if (!llm.available) return fallback();
+  if (!llm.available) return { ...fallback(), aiDown: "AI is not configured" };
   try {
     return await llm.json({ kind: "classify_reply", promptVersion: CLASSIFY_VERSION, tier: "fast", system: classifySystem, prompt: classifyPrompt(text, lastOut), schema: ClassifySchema, subjectId: threadId });
   } catch (e) {
-    if (e instanceof LlmOutputError) return fallback(); // same safe fallback as "no LLM"
-    throw e;
+    // Any AI failure (quota, outage, invalid output): never crash, use the same safe fallback as "no LLM".
+    const why = /429|quota/i.test((e as Error).message) ? "AI quota exhausted" : "AI unavailable or gave an invalid answer";
+    return { ...fallback(), aiDown: why };
   }
 }
 
@@ -142,8 +161,7 @@ async function answerFromKb(deps: Deps, view: ThreadView, inbound: Message, text
     const slots = await offerSlots(deps, view);
     return reply(deps, view, inbound, `${out.body.trim()}\n\n${slotsText(slots)}`, { ...base, route: "answer", kbIds: out.kb_ids_used, slots: serialize(slots) });
   } catch (e) {
-    if (e instanceof LlmOutputError) return escalate(deps, view, inbound, cls, "Answer failed validation twice");
-    throw e;
+    return escalate(deps, view, inbound, cls, e instanceof LlmOutputError && !/429|quota/i.test(e.message) ? "Answer failed validation twice" : "AI unavailable: please reply yourself");
   }
 }
 

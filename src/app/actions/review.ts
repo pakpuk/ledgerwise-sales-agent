@@ -6,6 +6,8 @@ import { container } from "@/infrastructure/container";
 import { approveDraft, editDraft, rejectDraft } from "@/application/use-cases/review-draft";
 import { draftEmail } from "@/application/use-cases/draft-email";
 import { requireSession } from "./auth";
+import { friendlyError } from "./companies";
+import { redirect } from "next/navigation";
 
 export type ActionState = { ok?: string; error?: string };
 
@@ -19,9 +21,16 @@ function refresh() {
 
 export async function writeEmail(form: FormData) {
   await requireSession();
-  await draftEmail(container(), Id.parse(form.get("companyId")));
+  let notice: string | null = null;
+  try {
+    // AI failures inside draftEmail already produce a "Needs you" draft; this catches everything else.
+    await draftEmail(container(), Id.parse(form.get("companyId")));
+  } catch (e) {
+    notice = await friendlyError(e);
+  }
   refresh();
   revalidatePath("/companies");
+  redirect(notice ? `/companies?notice=${encodeURIComponent(notice)}` : "/review");
 }
 
 export async function reviewAction(_prev: ActionState, form: FormData): Promise<ActionState> {

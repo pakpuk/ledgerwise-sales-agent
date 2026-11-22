@@ -38,7 +38,7 @@ function sortCompanies(list: CompanyWithQualification[], sort: Sort) {
 }
 
 export default async function CompaniesPage({ searchParams }: PageProps<"/companies">) {
-  const { sort: rawSort } = await searchParams;
+  const { sort: rawSort, notice } = await searchParams;
   const sort: Sort = typeof rawSort === "string" && rawSort in SORTS ? (rawSort as Sort) : "score";
   const companies = hasDb() ? sortCompanies(await container().repo.listCompanies(), sort) : [];
 
@@ -46,6 +46,7 @@ export default async function CompaniesPage({ searchParams }: PageProps<"/compan
     <>
       <PageHeader title="Companies" description="Prospects the agent researched, with a fit score and the source behind every reason." />
       <SetupBanner />
+      {typeof notice === "string" && <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">Needs you: {notice}</div>}
       {companies.length === 0 ? (
         <EmptyState title="No companies yet">
           Add companies to <code>data/seed-companies.json</code> and run <code>npm run research:seed</code>, or run{" "}

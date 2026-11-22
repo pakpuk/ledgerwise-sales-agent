@@ -3,7 +3,7 @@
 
 import type { Claim } from "@/domain/entities";
 import { checkFirstEmail, withOptOut } from "@/domain/rules/email-rules";
-import { LlmOutputError, type LlmPort, type SalesRepository } from "@/application/ports";
+import { LlmOutputError, LlmUnavailableError, type LlmPort, type SalesRepository } from "@/application/ports";
 import { DraftEmailSchema, DRAFT_EMAIL_VERSION, draftEmailPrompt, draftEmailSystem } from "@/application/prompts/draft-email";
 
 /** No real addresses are ever invented or used: every prospect gets a sandbox inbox. */
@@ -46,7 +46,7 @@ export async function draftEmail(deps: { repo: SalesRepository; llm: LlmPort }, 
       if (violations.length === 0) break;
       feedback = violations;
     } catch (e) {
-      if (!(e instanceof LlmOutputError)) throw e;
+      if (!(e instanceof LlmOutputError) && !(e instanceof LlmUnavailableError)) throw e;
       violations = [e.message];
     }
   }

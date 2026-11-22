@@ -1,5 +1,6 @@
 // Cost summary from agent_runs: total by kind, cost per lead and cost per reply.
 import { container } from "@/infrastructure/container";
+import { isPriced } from "@/infrastructure/llm/pricing";
 
 const LEAD_KINDS = new Set(["find_candidates", "extract_facts", "qualify", "draft_email"]);
 const REPLY_KINDS = new Set(["classify_reply", "answer_reply"]);
@@ -26,9 +27,14 @@ async function main() {
   const replyCost = runs.filter((r) => REPLY_KINDS.has(r.kind)).reduce((s, r) => s + r.costUsd, 0);
   const inbound = threads.reduce((n, t) => n + t.messages.filter((m) => m.direction === "inbound").length, 0);
   const total = runs.reduce((s, r) => s + r.costUsd, 0);
-  console.log(`\nTotal LLM spend : $${total.toFixed(4)} over ${runs.length} calls`);
-  console.log(`Cost per lead   : $${(companies.length ? leadCost / companies.length : 0).toFixed(4)} (${companies.length} companies researched)`);
-  console.log(`Cost per reply  : $${(inbound ? replyCost / inbound : 0).toFixed(4)} (${inbound} prospect replies handled)`);
+  const tok = (kinds: Set<string>) => runs.filter((r) => kinds.has(r.kind)).reduce((s, r) => s + r.inputTokens + r.outputTokens, 0);
+  const allTokens = runs.reduce((s, r) => s + r.inputTokens + r.outputTokens, 0);
+  const unpriced = [...new Set(runs.filter((r) => !isPriced(r.model)).map((r) => r.model))];
+  const money = (v: number) => (unpriced.length ? "price unknown" : `$${v.toFixed(4)}`);
+  if (unpriced.length) console.log(`\nNo price on file for: ${unpriced.join(", ")}. Dollar figures are not shown; use tokens.`);
+  console.log(`\nTotal LLM usage : ${money(total)}, ${allTokens} tokens over ${runs.length} calls`);
+  console.log(`Per lead        : ${money(companies.length ? leadCost / companies.length : 0)}, ${companies.length ? Math.round(tok(LEAD_KINDS) / companies.length) : 0} tokens (${companies.length} companies researched)`);
+  console.log(`Per reply       : ${money(inbound ? replyCost / inbound : 0)}, ${inbound ? Math.round(tok(REPLY_KINDS) / inbound) : 0} tokens (${inbound} prospect replies handled; see npm run eval for a measured per-reply figure)`);
 }
 
 main().catch((e) => {

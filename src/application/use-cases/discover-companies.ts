@@ -8,14 +8,25 @@ import { importCompanies, normalizeWebsite, type SeedCompany } from "./import-co
 import type { ResearchDeps } from "./research-company";
 
 export const TRIGGER_QUERIES = [
+  // Hiring finance / ops
   "Shopify brand hiring staff accountant",
   "DTC e-commerce brand hiring operations manager",
+  "e-commerce brand hiring bookkeeper 2026",
+  "DTC brand hiring finance manager 2026",
+  "Shopify Plus brand hiring controller",
+  "Amazon seller brand hiring operations coordinator 2026",
+  // Funding
   "consumer brand raises seed round Shopify 2026",
-  "DTC brand closes Series A funding",
-  "Shopify brand launches on Amazon",
-  "DTC brand expands into wholesale retail stores",
-  "e-commerce brand launches in Target stores",
-  "independent DTC brand expands to Canada UK",
+  "DTC brand closes Series A funding 2026",
+  "DTC brand raises funding 2026 to expand retail",
+  "e-commerce startup raises seed round 2026 consumer products",
+  // Expansion
+  "Shopify brand launches on Amazon 2026",
+  "DTC brand expands into wholesale retail stores 2026",
+  "e-commerce brand launches in Target stores 2026",
+  "DTC brand launches at Whole Foods 2026",
+  "independent DTC brand expands to Canada UK 2026",
+  "DTC brand opens first retail store 2026",
 ];
 
 const NEWS_HOSTS = /(techcrunch|forbes|businessinsider|linkedin|indeed|glassdoor|crunchbase|bloomberg|reuters|yahoo|medium|substack|prnewswire|businesswire|shopify\.com|amazon\.com|modernretail|retaildive)/i;
