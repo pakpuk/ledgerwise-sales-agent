@@ -6,7 +6,7 @@ import { SESSION_COOKIE, checkPassword, createSessionToken, verifySessionToken }
 
 export async function login(_prev: { error?: string }, form: FormData): Promise<{ error?: string }> {
   const password = String(form.get("password") ?? "");
-  const next = String(form.get("next") ?? "/companies");
+  const next = String(form.get("next") ?? "/");
   if (!(await checkPassword(password))) return { error: "Wrong password" };
   const { token, maxAge } = await createSessionToken();
   (await cookies()).set(SESSION_COOKIE, token, {
@@ -16,7 +16,7 @@ export async function login(_prev: { error?: string }, form: FormData): Promise<
     maxAge,
     path: "/",
   });
-  redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/companies");
+  redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/");
 }
 
 export async function logout() {

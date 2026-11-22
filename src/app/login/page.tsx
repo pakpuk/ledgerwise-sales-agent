@@ -3,7 +3,7 @@ import { LoginForm } from "./login-form";
 
 async function Form({ searchParams }: { searchParams: PageProps<"/login">["searchParams"] }) {
   const { next } = await searchParams;
-  return <LoginForm next={typeof next === "string" ? next : "/companies"} />;
+  return <LoginForm next={typeof next === "string" ? next : "/"} />;
 }
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {

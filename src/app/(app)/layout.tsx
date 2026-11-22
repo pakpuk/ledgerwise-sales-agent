@@ -6,6 +6,7 @@ import { Button } from "@/components/ui";
 export const instant = false;
 
 const NAV = [
+  { href: "/", label: "Home" },
   { href: "/companies", label: "Companies" },
   { href: "/review", label: "Review" },
   { href: "/inbox", label: "Inbox" },
@@ -16,8 +17,8 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex flex-1 flex-col bg-zinc-50">
       <header className="border-b border-zinc-200 bg-white">
-        <nav className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-2">
-          <span className="mr-4 font-semibold">Ledgerwise</span>
+        <nav className="mx-auto flex max-w-5xl items-center gap-1 overflow-x-auto px-4 py-2">
+          <span className="mr-2 font-semibold sm:mr-4">Ledgerwise</span>
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} className="rounded-md px-3 py-1.5 text-sm hover:bg-zinc-100">
               {n.label}

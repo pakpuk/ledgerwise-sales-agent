@@ -50,3 +50,11 @@
 - **Booking pulled forward from CP5:** `book-call.ts` (idempotency key = thread + slot start, re-checks availability) and a simulated calendar, because "Tuesday works" needs booking to be testable now.
 - **Knowledge base invented** in `src/application/knowledge-base.ts`, listed in `docs/ASSUMPTIONS.md` as "to confirm with the client".
 - **Mistakes:** (1) a stray `cat >` with no input hung a shell command for 2 minutes; killed it and rewrote the lost test file. (2) My `Textarea` props type dropped `ref` (React 19 `ComponentProps` fixes it).
+
+## Checkpoint 5 — booking + Calls page (2026-11-22)
+
+- **Cal.com adapter** (`infrastructure/calendar/calcom.ts`): API v2 `GET /slots` + `POST /bookings`, responses validated with Zod, 12h notice, slots spread across days so the 3 offered times are on different days. Picked automatically when `CAL_API_KEY` + `CAL_EVENT_TYPE_ID` are set; otherwise the simulated calendar.
+- **Idempotency:** key = thread id + slot start. `bookCall` returns the existing booking if the key exists (DB unique index is the final guard), and re-checks the slot is still free before booking. Tested: booking the same slot twice → one booking.
+- **Calls page:** upcoming/past, time in the prospect's timezone, badge "In Cal.com" vs "Simulated calendar", link to the conversation.
+- **Home = "Needs your attention"** (claude.md asked for it): counts + the threads waiting for a human with the reason.
+- **Not verified live:** the Cal.com adapter was written from the v2 API docs I know; no key was available to test it. Known risk: Cal.com sends invites to the attendee email, which is a `.sandbox` address (will bounce, by design).
