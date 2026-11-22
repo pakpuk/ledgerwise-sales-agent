@@ -1,6 +1,6 @@
 // Ports: the only way use cases talk to the outside world.
 import type { z } from "zod";
-import type { Company, CompanySource, Contact, Fact, Message, Page, Qualification, QualificationReason, Slot, Thread, ThreadStatus } from "@/domain/entities";
+import type { Booking, Company, CompanySource, Contact, Fact, Message, Page, Qualification, QualificationReason, Slot, Thread, ThreadStatus } from "@/domain/entities";
 
 export type ModelTier = "fast" | "smart";
 
@@ -100,6 +100,15 @@ export interface SalesRepository {
   addSuppression(value: string, kind: "email" | "domain", reason: string): Promise<void>;
   /** Cancel unsent drafts/approved messages to anyone at this company. Returns how many. */
   cancelPendingMessages(companyId: string): Promise<number>;
+
+  // Bookings
+  /** Insert; if the idempotency key already exists, return the existing booking (created=false). */
+  createBooking(b: Omit<Booking, "id">): Promise<{ booking: Booking; created: boolean }>;
+  findBooking(idempotencyKey: string): Promise<Booking | null>;
+  listBookings(): Promise<Booking[]>;
+
+  // Costs
+  listRuns(): Promise<(AgentRunRecord & { createdAt: Date })[]>;
 }
 
 export type NewMessage = Omit<Message, "id" | "createdAt" | "sentAt" | "meta" | "claims" | "subject"> &

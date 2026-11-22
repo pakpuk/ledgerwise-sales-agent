@@ -8,6 +8,7 @@ import { NoLlm } from "./llm/none";
 import { FetchScraper } from "./scraper/fetch-scraper";
 import { NoSearch, TavilySearch } from "./search/tavily";
 import { SandboxMail } from "./mail/sandbox-mail";
+import { SimulatedCalendar } from "./calendar/simulated";
 
 export interface FeatureStatus {
   key: string;
@@ -42,7 +43,8 @@ function build() {
   }
 
   const search: SearchPort = process.env.TAVILY_API_KEY ? new TavilySearch(process.env.TAVILY_API_KEY) : new NoSearch();
-  return { repo, llm, search, scraper: new FetchScraper(), mail: new SandboxMail() };
+  const calendar = new SimulatedCalendar(repo);
+  return { repo, llm, search, calendar, scraper: new FetchScraper(), mail: new SandboxMail() };
 }
 
 export function container() {

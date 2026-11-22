@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 import type { AgentRunRecord, CompanyWithQualification, NewMessage, SalesRepository, ThreadView } from "@/application/ports";
-import type { Company, Contact, Fact, Message, Page, Qualification, QualificationReason, Thread, ThreadStatus } from "@/domain/entities";
+import type { Booking, Company, Contact, Fact, Message, Page, Qualification, QualificationReason, Thread, ThreadStatus } from "@/domain/entities";
 import type { Db } from "./client";
 import * as t from "./schema";
 
@@ -145,5 +145,25 @@ export class DrizzleRepository implements SalesRepository {
       .where(and(inArray(t.messages.threadId, threads.map((x) => x.id)), inArray(t.messages.status, ["draft", "approved"])))
       .returning({ id: t.messages.id });
     return rows.length;
+  }
+
+  async createBooking(b: Omit<Booking, "id">) {
+    const [row] = await this.db.insert(t.bookings).values(b).onConflictDoNothing({ target: t.bookings.idempotencyKey }).returning();
+    if (row) return { booking: row as Booking, created: true };
+    return { booking: (await this.findBooking(b.idempotencyKey))!, created: false };
+  }
+
+  async findBooking(idempotencyKey: string) {
+    const [row] = await this.db.select().from(t.bookings).where(eq(t.bookings.idempotencyKey, idempotencyKey));
+    return (row as Booking) ?? null;
+  }
+
+  async listBookings() {
+    return (await this.db.select().from(t.bookings).orderBy(asc(t.bookings.start))) as Booking[];
+  }
+
+  async listRuns() {
+    const rows = await this.db.select().from(t.agentRuns).orderBy(desc(t.agentRuns.createdAt));
+    return rows.map((r) => ({ ...r, subjectId: r.subjectId ?? undefined, error: r.error ?? undefined }));
   }
 }

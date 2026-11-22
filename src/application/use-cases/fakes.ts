@@ -1,6 +1,6 @@
 // In-memory fakes for use-case tests (no DB, no network).
-import type { AgentRunRecord, CompanyWithQualification, LlmPort, LlmRequest, MailPort, NewMessage, SalesRepository, ScraperPort, ThreadView } from "@/application/ports";
-import type { Company, Contact, Fact, Message, Page, Qualification, QualificationReason, Thread, ThreadStatus } from "@/domain/entities";
+import type { AgentRunRecord, CalendarPort, CompanyWithQualification, LlmPort, LlmRequest, MailPort, NewMessage, SalesRepository, ScraperPort, ThreadView } from "@/application/ports";
+import type { Booking, Company, Contact, Fact, Message, Page, Qualification, QualificationReason, Thread, ThreadStatus } from "@/domain/entities";
 
 let n = 0;
 const id = () => `id${++n}`;
@@ -15,6 +15,7 @@ export class FakeRepo implements SalesRepository {
   threads: Thread[] = [];
   messages: Message[] = [];
   suppressions: { value: string; kind: "email" | "domain"; reason: string }[] = [];
+  bookings: Booking[] = [];
 
   async upsertCompany(c: Parameters<SalesRepository["upsertCompany"]>[0]) {
     const existing = this.companies.find((x) => x.domain === c.domain);
@@ -114,6 +115,22 @@ export class FakeRepo implements SalesRepository {
     for (const m of this.messages) if (threadIds.includes(m.threadId) && (m.status === "draft" || m.status === "approved")) (m.status = "cancelled"), n++;
     return n;
   }
+  async createBooking(b: Omit<Booking, "id">) {
+    const existing = this.bookings.find((x) => x.idempotencyKey === b.idempotencyKey);
+    if (existing) return { booking: existing, created: false };
+    const row: Booking = { id: id(), ...b };
+    this.bookings.push(row);
+    return { booking: row, created: true };
+  }
+  async findBooking(key: string) {
+    return this.bookings.find((x) => x.idempotencyKey === key) ?? null;
+  }
+  async listBookings() {
+    return this.bookings;
+  }
+  async listRuns() {
+    return this.runs.map((r) => ({ ...r, createdAt: new Date() }));
+  }
 }
 
 export class FakeMail implements MailPort {
@@ -143,5 +160,25 @@ export class FakeLlm implements LlmPort {
     const o = this.outputs[req.kind];
     const raw = typeof o === "function" ? (o as (r: LlmRequest<unknown>) => unknown)(req as LlmRequest<unknown>) : o;
     return req.schema.parse(raw);
+  }
+}
+
+/** Three fixed weekday slots (ET), minus anything booked. */
+export class FakeCalendar implements CalendarPort {
+  readonly simulated = true;
+  booked: string[] = [];
+  slots = [
+    new Date("2026-12-01T15:00:00Z"), // Tue 10:00 ET
+    new Date("2026-12-01T19:00:00Z"), // Tue 14:00 ET
+    new Date("2026-12-03T15:00:00Z"), // Thu 10:00 ET
+  ];
+  async availableSlots({ timezone }: { from: Date; days: number; timezone: string }) {
+    return this.slots
+      .filter((s) => !this.booked.includes(s.toISOString()))
+      .map((start) => ({ start, end: new Date(+start + 30 * 60_000), timezone, simulated: true }));
+  }
+  async book(args: { start: Date }) {
+    this.booked.push(args.start.toISOString());
+    return { externalId: null };
   }
 }

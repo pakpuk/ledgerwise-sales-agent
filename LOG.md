@@ -40,3 +40,13 @@
 - **Mistake caught:** stop-suppression keyed on the email's domain would not have matched, because prospect emails are sandbox addresses (`prospect@acme.com.sandbox`). Changed `findSuppression(email, companyDomain)` and `cancelPendingMessages(companyId)`.
 - **Mistake caught:** `/review` was prerendered as a static page at build (no DB at build time) → would show stale data. Added `await connection()` to data pages.
 - **Assumption:** we never invent real contact emails. Each company gets a clearly-labelled sandbox inbox; the greeting name is used only if a fact names the person.
+
+## Checkpoint 4 — reply agent + Inbox (2026-11-22)
+
+- **Order in `handle-reply.ts`:** save inbound → stop/suppression check in code (no LLM call; a test asserts the LLM is never called) → human-owned threads stay quiet → classify with MODEL_FAST → `isBotQuestion` overrides the classifier (honesty not left to the model) → `shouldEscalate` → route → every reply goes through `send-message`.
+- **Routes:** pricing → fixed answer + 3 slots with timezone; bot → fixed honest answer; wants call → offer slots, or book if their text matches an offered slot ("Tuesday afternoon works"); question/objection → smart model answers ONLY from the KB entry the classifier picked (else human); not-now → fixed polite close; out-of-office → no reply; hostile/legal/non-English/unsure/low confidence/outside KB → human.
+- **Stop:** suppresses the email AND the company domain, cancels pending drafts, marks the thread stopped.
+- **No LLM fallback:** bot and pricing still get their safe fixed answers (regex), everything else goes to a human.
+- **Booking pulled forward from CP5:** `book-call.ts` (idempotency key = thread + slot start, re-checks availability) and a simulated calendar, because "Tuesday works" needs booking to be testable now.
+- **Knowledge base invented** in `src/application/knowledge-base.ts`, listed in `docs/ASSUMPTIONS.md` as "to confirm with the client".
+- **Mistakes:** (1) a stray `cat >` with no input hung a shell command for 2 minutes; killed it and rewrote the lost test file. (2) My `Textarea` props type dropped `ref` (React 19 `ComponentProps` fixes it).
